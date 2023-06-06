@@ -11,6 +11,8 @@ julia> println("link", encode_id(Int16(12)))
 ```
 `link` should now appear clickable and will print `link: 12` into the terminal.
 
+[Peek 2023-06-06 09-46.webm](https://github.com/pfitzseb/julia-link-extension/assets/6735977/aa4b7205-93c9-4ccb-9624-68abba12ec8e)
+
 ---
 
 ## Following extension guidelines
