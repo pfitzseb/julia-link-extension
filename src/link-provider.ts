@@ -17,31 +17,36 @@ export class JuliaLinkProvider
         context: vscode.TerminalLinkContext,
         token: vscode.CancellationToken
     ): vscode.ProviderResult<JuliaLink[]> {
+        const out: JuliaLink[] = []
+
         if (!context.terminal.name.startsWith('Julia REPL')) {
-            return []
+            return out
         }
         const line = context.line
 
         // TODO: make this more robust/applicable to the usecase
-        const matches = line.match(/(?<type>\w+)(?<id>[\u200b\u2060]+)/)
-        if (
-            matches !== null &&
-            matches.index !== undefined &&
-            matches.groups !== undefined
-        ) {
-            const id = decodeBinary(matches.groups.id)
-            const type = matches.groups.type
-            return [
-                {
-                    startIndex: matches.index,
-                    length: matches[0].length,
-                    tooltip: `${type}: ${id}`,
-                    type: type,
-                    id: id,
-                },
-            ]
+        const matches = line.matchAll(/(?<type>\w+)(?<id>[\u200b\u2060]+)/g)
+        for (const match of matches) {
+            if (
+                match !== null &&
+                match.index !== undefined &&
+                match.groups !== undefined
+            ) {
+                const id = decodeBinary(match.groups.id)
+                const type = match.groups.type
+                out.push(
+                    {
+                        startIndex: match.index,
+                        length: match[0].length,
+                        tooltip: `${type}: ${id}`,
+                        type: type,
+                        id: id,
+                    }
+                )
+            }
         }
-        return []
+
+        return out
     }
 
     handleTerminalLink(link: JuliaLink): vscode.ProviderResult<void> {
