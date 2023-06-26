@@ -5,6 +5,9 @@ interface JuliaLink extends vscode.TerminalLink {
     id?: number
 }
 
+const ZERO = '\u2060'
+const ONE = '\u200b'
+
 export class JuliaLinkProvider
     implements vscode.TerminalLinkProvider<JuliaLink>
 {
@@ -24,8 +27,7 @@ export class JuliaLinkProvider
         }
         const line = context.line
 
-        // TODO: make this more robust/applicable to the usecase
-        const matches = line.matchAll(/(?<type>\w+)(?<id>[\u200b\u2060]+)/g)
+        const matches = line.matchAll(/\u200b(?<type>[^\u200b\u2060]+?)(?<id>[\u200b\u2060]+)/g)
         for (const match of matches) {
             if (
                 match !== null &&
@@ -38,7 +40,7 @@ export class JuliaLinkProvider
                     {
                         startIndex: match.index,
                         length: match[0].length,
-                        tooltip: `${type}: ${id}`,
+                        tooltip: `${type} (Julia callback)`,
                         type: type,
                         id: id,
                     }
@@ -50,14 +52,11 @@ export class JuliaLinkProvider
     }
 
     handleTerminalLink(link: JuliaLink): vscode.ProviderResult<void> {
-        // TODO: This should probably do something more useful. If you need
-        // it to be generic, then you can implement RPC here and use the id
-        // as the key for whatever logic you want to execute.
-        this.api.executeInREPL(`println("${link.type}: ${link.id}")`, {
+        this.api.executeInREPL(`run_callback(${link.id})`, {
             filename: 'link-handler',
             line: 0,
             column: 0,
-            mod: 'Main',
+            mod: 'LinkProvider',
             showCodeInREPL: false,
             showResultInREPL: false,
             showErrorInREPL: false,
@@ -66,16 +65,6 @@ export class JuliaLinkProvider
     }
 }
 
-// The Julia side encodes integers as a sequence of zero-width spaces, which allows
-// us to tack on additional metadata without changing anything about how the link
-// appears visually. This is a bit brittle (trying this with a Int64 crashes the
-// terminal) and might not be needed, but still is a neat hack.
-//
-// Encoding logic is
-// encode_id(x::Union{Int8, Int16, Int32}) = replace(bitstring(x), '1' => '\u200b', '0' => '\u2060')
 function decodeBinary(input: string) {
-    return parseInt(
-        input.replaceAll('\u200b', '1').replaceAll('\u2060', '0'),
-        2
-    )
+    return parseInt(input.replaceAll(ONE, '1').replaceAll(ZERO, '0'), 2)
 }
