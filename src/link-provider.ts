@@ -38,7 +38,7 @@ export class JuliaLinkProvider
                 const type = match.groups.type
                 out.push(
                     {
-                        startIndex: match.index,
+                        startIndex: match.index + 1,
                         length: match[0].length,
                         tooltip: `${type} (Julia callback)`,
                         type: type,
