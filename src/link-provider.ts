@@ -11,10 +11,7 @@ const ONE = '\u200b'
 export class JuliaLinkProvider
     implements vscode.TerminalLinkProvider<JuliaLink>
 {
-    constructor(private api: any) {
-        // TODO: for debugging purposes only
-        vscode.window.showInformationMessage('Julia link listener installed!')
-    }
+    constructor(private api: any) {}
 
     provideTerminalLinks(
         context: vscode.TerminalLinkContext,
